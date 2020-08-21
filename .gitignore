@@ -1,0 +1,9 @@
+# Ignore file
+*.ipynb
+*.jpg
+.DS_Store
+
+# Ignore folder
+__pycache__/
+.ipynb_checkpoints/
+.idea/
