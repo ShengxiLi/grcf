@@ -66,7 +66,7 @@ def get_input_uniform_noise(uniform_noise_upb, uniform_noise_lowb, uniform_noise
 
 
 def get_graph_target(source):
-    if source not in ['cora', 'citeseer']:
+    if source not in ['cora', 'citeseer', 'pubmed']:
         raise SystemExit('Error: Unknown source for target: {0}'.format(source))
     # load the data: x, tx, allx, graph
     names = ['x', 'tx', 'allx', 'graph']

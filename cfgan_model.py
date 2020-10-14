@@ -42,13 +42,6 @@ class Model:
         self.adj_orig.eliminate_zeros()
         self.adj_train, self.train_edges, self.val_edges, self.val_edges_false, \
         self.test_edges, self.test_edges_false = mask_test_edges(adj)
-        # some preprocessing
-        # adj_label = self.adj_train + sp.eye(self.adj_train.shape[0])
-        # self.adj_label = torch.FloatTensor(adj_label.toarray())
-        # self.pos_weight = torch.Tensor([float(self.adj_train.shape[0] * self.adj_train.shape[0]
-        #                                       - self.adj_train.sum()) / self.adj_train.sum()])
-        # self.norm = self.adj_train.shape[0] * self.adj_train.shape[0] \
-        #             / float((self.adj_train.shape[0] * self.adj_train.shape[0] - self.adj_train.sum()) * 2)
 
         self.net_type = generator_training_param['net_type']
         if generator_training_param['net_type'] not in ['gnn']:
@@ -145,11 +138,7 @@ class Model:
         mean_t_record.reset()
         mean_x_record.reset()
         for i in range(start_epoch, self.epoch):
-            # if i < 300:
-            #     lam_d = self.lamda
-            # else:
-            #     lam_d = self.lamda
-            lam_d = self.lamda
+            lam_d = self.lamda[i]
             # mini batch
             for i_adv in range(self.inner_ite_adv):
                 # train t_nets
@@ -207,7 +196,7 @@ class Model:
                     mean_t_record.update(1e4 * target_emb.view(-1).abs().mean())
 
             # Validation
-            hidden_emb = nn.functional.normalize(target_emb, p=2, dim=1)
+            hidden_emb = nn.functional.normalize(target_emb.detach(), p=2, dim=1)
             hidden_emb = hidden_emb.to(torch.device('cpu'))
             # adj_for_val = target_est_adj.to(torch.device('cpu')).detach()
             roc_curr, ap_curr = get_roc_score(hidden_emb, self.adj_orig, self.val_edges, self.val_edges_false)
@@ -243,25 +232,6 @@ class Model:
             self.writer.add_scalars('feature scales', {'X': mean_x_record.avg, 'T': mean_t_record.avg}, i + 1)
             self.writer.add_scalars('validation', {'ROC': roc_curr, 'AP': ap_curr}, i + 1)
 
-            # if i == 0 or (i + 1) % 10 == 0:
-            #     epoch_count = i + 1
-            #     time_diff = time.time() - start
-            #     print('Epoch {0}: {1:.4}, time: {2:.4f}'.format(epoch_count, loss_record.avg / 1e4, time_diff))
-            #     torch.save({
-            #         'epoch': epoch_count,
-            #         'adv_model_state_dict': self.adversarial_net.state_dict(),
-            #         'adv_optimizer_state_dict': self.optimizer_adv.state_dict(),
-            #         'gen_model_state_dict': self.sample_net.state_dict(),
-            #         'gen_optimizer_state_dict': self.optimizer_gen.state_dict(),
-            #     }, self.model_trace_path.format(epoch_count, loss_record.avg / 1e4))
-            #     with torch.no_grad():
-            #         record_as_img(x.to(torch.device('cpu')).detach(), self.result_path.format(epoch_count))
-            #         # tensorboard_img_writer(x.to(torch.device('cpu')).detach(), self.writer, 'generated images')
-            #     # record reconstruction results
-            #     with torch.no_grad():
-            #         record_as_img(target_mimic.to(torch.device('cpu')).detach(), self.mid_result_path.format(epoch_count))
-            #         # tensorboard_img_writer(target_mimic.to(torch.device('cpu')).detach(),
-            #         #                        self.writer, 'reconstructed images')
 
         bar.finish()
         # # save model and plot loss function
@@ -271,11 +241,11 @@ class Model:
         }, self.model_path)
 
         # Validation
-        hidden_emb = nn.functional.normalize(target_emb, p=2, dim=1)
+        hidden_emb = nn.functional.normalize(target_emb.detach(), p=2, dim=1)
         hidden_emb = hidden_emb.to(torch.device('cpu'))
         # adj_for_val = target_est_adj.to(torch.device('cpu')).detach()
-        roc_curr, ap_curr = get_roc_score(hidden_emb, self.adj_orig, self.test_edges, self.test_edges_false)
+        roc_score, ap_score = get_roc_score(hidden_emb, self.adj_orig, self.test_edges, self.test_edges_false)
         print('-------------')
-        print('Test ROC score: ' + str(roc_curr))
-        print('Test AP score: ' + str(ap_curr))
+        print('Test ROC score: ' + str(roc_score))
+        print('Test AP score: ' + str(ap_score))
 
