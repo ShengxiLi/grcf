@@ -28,26 +28,12 @@ class SampleNet(nn.Module):
             self.layers_list.append(nn.BatchNorm1d(fc_dim[-1]))
             self.layers_list.append(activations[1])
 
-            # fc_dim = [input_dim] + net_structure['net_dim']
-            # for i in range(1, len(fc_dim) - 1):
-            #     self.adj_layers_list.append(nn.Linear(fc_dim[i - 1], fc_dim[i]))
-            #     self.adj_layers_list.append(nn.BatchNorm1d(fc_dim[i]))
-            #     self.adj_layers_list.append(activations[0])
-            # self.adj_layers_list.append(nn.Linear(fc_dim[-2], fc_dim[-1]))
-            # self.adj_layers_list.append(nn.BatchNorm1d(fc_dim[-1]))
-            # self.adj_layers_list.append(activations[1])
 
     def forward(self, noise):
         a = noise.clone()
         for layer in self.layers_list:
             a = layer(a)
 
-        # b = noise.clone()
-        # for layer in self.adj_layers_list:
-        #     b = layer(b)
-        # # b = torch.softmax(b, dim=1)
-        # b = nn.functional.normalize(b, p=2, dim=1)
-        # b = self.inner_prod(b)
         return a
 
 
@@ -89,10 +75,7 @@ class AdvNet(nn.Module):
         a = noise
         for layer in self.layers_list:
             a = layer(a, adj)
-        # a_compare = a
         a = a.view(a.shape[0], -1)
-        # a_compare = a_compare.view(a_compare.shape[0], -1)
-        # a_compare = self.final_norm(a_compare)
         return nn.functional.normalize(a, p=2, dim=1)
 
     def net_t(self):
@@ -137,7 +120,8 @@ def activations_to_torch(activations):
             raise SystemExit('Error: Unknown activation function \'{0}\''.format(i_act[0]))
     return activations
 
-
+# The same version with
+# https://github.com/tkipf/pygcn/blob/master/pygcn/layers.py
 class GraphConvolution(nn.Module):
     """
     Simple GCN layer, similar to https://arxiv.org/abs/1609.02907
@@ -180,5 +164,4 @@ class InnerProductDecoder(nn.Module):
         z = nn.functional.normalize(z, p=2, dim=1)
         z = nn.functional.dropout(z, self.dropout, training=self.training)
         adj = self.act(torch.mm(z, z.t()))
-        # adj = torch.abs(torch.mm(z, z.t()))
         return adj

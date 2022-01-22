@@ -48,31 +48,5 @@ class CFLossFunc(nn.Module):
 
         loss_pha = loss_pha.clamp(min=1e-12)  # keep numerical stability
 
-        if self.loss_type['normalization'] is not None:
-            # normalization
-            if self.loss_type['normalization'] == 'xx':
-                normalization = torch.mul(t_x_norm, t_x_norm)
-            elif self.loss_type['normalization'] == 'xy':
-                normalization = torch.mul(t_x_norm, t_target_norm)
-            elif self.loss_type['normalization'] == 'yy':
-                normalization = torch.mul(t_target_norm, t_target_norm)
-            elif self.loss_type['normalization'] == 'tt':
-                normalization = torch.mean(torch.abs(t), dim=1)
-            else:
-                raise SystemExit('Error: Unknown normalization type \'{0}\''.format(self.loss_type['normalization']))
-
-            # weight
-            if self.loss_type['threshold'] == 'origin':
-                normalization = torch.clamp(normalization, min=self.threshold)
-            elif self.loss_type['threshold'] == 'relu':
-                normalization[normalization < self.threshold] = 2
-            else:
-                raise SystemExit('Error: Unknown weight type \'{0}\''.format(self.loss_type['weight']))
-
-        if self.loss_type['normalization'] is not None:
-            loss = torch.mean(torch.div((self.alpha * loss_amp + self.beta * loss_pha), normalization))
-        else:
-            loss = torch.mean(torch.sqrt(self.alpha * loss_amp + self.beta * loss_pha))
-        # loss = torch.mean(torch.mul((t_x_real - t_target_real), (t_x_real - t_target_real)) +
-        #                   torch.mul((t_x_imag - t_target_imag), (t_x_imag - t_target_imag)))
+        loss = torch.mean(torch.sqrt(self.alpha * loss_amp + self.beta * loss_pha))
         return loss

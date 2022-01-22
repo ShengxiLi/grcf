@@ -64,7 +64,7 @@ def get_input_uniform_noise(uniform_noise_upb, uniform_noise_lowb, uniform_noise
                                     size=[uniform_noise_num, uniform_noise_dim])
     return torch.from_numpy(white_noise)
 
-
+# Adopted from https://github.com/tkipf/gae/blob/master/gae/input_data.py
 def get_graph_target(source):
     if source not in ['cora', 'citeseer', 'pubmed']:
         raise SystemExit('Error: Unknown source for target: {0}'.format(source))
@@ -111,7 +111,7 @@ def parse_index_file(filename):
         index.append(int(line.strip()))
     return index
 
-
+### The same as https://github.com/tkipf/gae/blob/master/gae/preprocessing.py
 def mask_test_edges(adj):
     # Function to build test set with 10% positive links
     # NOTE: Splits are randomized and results might slightly deviate from reported numbers in the paper.
@@ -212,6 +212,8 @@ def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     values = torch.from_numpy(sparse_mx.data)
     shape = torch.Size(sparse_mx.shape)
     return torch.sparse.FloatTensor(indices, values, shape)
+
+###
 
 def pdist(e, squared=False, eps=1e-12):
     e_square = e.pow(2).sum(dim=1)

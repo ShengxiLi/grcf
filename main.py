@@ -41,7 +41,7 @@ adversarial_training_param = {'input_t_dim': feature_dim, 'input_t_batchsize': t
 loss_alpha = 1  # amplitude
 loss_beta = 1  # phase
 # threshold is useless when normalization is None
-loss_type = {'threshold': 'origin', 'normalization': None}
+loss_type = None
 loss_threshold = 1
 
 # training
@@ -56,7 +56,7 @@ model = Model(model_label,
               adversarial_training_param, generator_training_param,
               loss_type, loss_alpha, loss_beta, loss_threshold, ae_loss_reg,
               epoch)
-# Comment this line for evaluation only given pre-trained models
+
 model.train(load)
 
 
